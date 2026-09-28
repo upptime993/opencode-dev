@@ -1,80 +1,56 @@
 ---
 name: implement-task
-description: Execute and automate coding tasks from the .agents/3-TASKS.md, hanya mengerjakan task yang sudah punya sumber jelas (FR/input user) atau sudah diapprove eksplisit jika berlabel EXTRA — mencegah AI membangun fitur di luar permintaan tanpa sepengetahuan user. Use when: user says "kerjakan task", "lanjutkan implementasi", "selesaikan tugas", or "start working on tasks".
----
-# SKILL: IMPLEMENT TASK (Anti-Halu, Vibe Coding Ready)
-
+description: Implement one approved task with strict scope control, repository inspection, minimal changes, and evidence-based completion.
 ---
 
-## 📋 Metadata
-- **Nama:** Implement Task
-- **Versi:** 2.0
-- **Output:** Kode implementasi dari task yang dipilih
-- **Dependensi:** `3-TASKS.md` (wajib dibaca)
+# IMPLEMENT TASK v3
 
-## 🎯 Trigger Keywords
-- "Implement task" / "Kerjakan task" / "Mulai implementasi"
-- "Coding task" / "Buat kode untuk task" / "Jalankan task"
+Read `00-engineering-guardrails/SKILL.md` first.
 
-## 📝 Deskripsi
-Membaca daftar task dari `.agents/3-TASKS.md` dan mengimplementasikannya satu per satu. **Aturan baru:** AI tidak boleh mengerjakan task apapun yang statusnya "Menunggu persetujuan" (label `[EXTRA]`) — itu artinya task itu belum disetujui user dan mengerjakannya sama saja membangun sesuatu yang tidak diminta.
+## Preconditions
+1. Read `3-TASKS.md`.
+2. Task must be approved and not `[PROPOSED EXTRA]`.
+3. Task must have a valid source and acceptance criteria.
+4. Check dependencies.
+5. Inspect current git status/diff when available.
+6. Read all relevant existing files before editing.
 
-## 📂 Baca/Menyimpan File
-- **Baca Task (WAJIB):** `@.agents/3-TASKS.md`
-- **Baca Tech Spec:** `@.agents/2-TECH-SPEC.md` (opsional, referensi)
-- **Update Task:** `.agents/3-TASKS.md`
+If a precondition fails, do not guess. Mark the task `BLOCKED` or ask for clarification.
 
-## ⚙️ Cara Kerja Skill
+## Before coding: change contract
+Write internally or in the task:
+- In scope
+- Out of scope
+- Expected files/areas
+- Acceptance checks
+- Risky/destructive operations prohibited
 
-### FASE 1: Deteksi Trigger & Baca Task
-1. Cek `.agents/3-TASKS.md`. Tidak ada → minta user buat Task dulu.
-2. Pisahkan task menjadi 2 kelompok: **Task Utama** (siap dikerjakan) dan **Task Tambahan/EXTRA** (perlu persetujuan — tidak boleh disentuh).
-3. Auto-detect boilerplate (sama seperti sebelumnya).
+## Implementation rules
+- Prefer the smallest change that satisfies the acceptance criteria.
+- Preserve unrelated user changes.
+- Do not rewrite working code merely for style.
+- Do not add product behavior that is not in scope.
+- Mechanical helpers are allowed only when they do not change product behavior.
+- Any behavior, schema, API, auth, dependency, or deployment change outside scope requires approval.
 
-### FASE 2: Pilih Task
-1. Tampilkan daftar task **Todo dari Task Utama saja**.
-2. Jika ada task EXTRA yang belum diapprove, tampilkan sebagai catatan terpisah:
-   ```
-   ⚠️ Ada 2 task tambahan yang diusulkan AI, belum kamu approve:
-   - T-EXTRA-01: [judul] — [alasan diusulkan]
-   Mau di-approve, ditolak, atau dibahas dulu?
-   ```
-   Jangan lanjut mengerjakannya sampai user merespons eksplisit.
-3. Beri nomor pada task Todo, tanyakan: "Task mana yang ingin diimplementasikan?"
+## Verification before Done
+Run the strongest available checks:
+1. formatter/linter/typecheck,
+2. build/compile,
+3. relevant unit/integration tests,
+4. focused smoke test,
+5. inspect diff.
 
-Jika user tidak memilih, ambil task Utama prioritas **High** pertama — **tidak pernah** task EXTRA yang belum diapprove, bahkan jika prioritasnya ditulis High oleh AI sendiri.
+Use project-specific commands discovered from manifests/config. Never invent commands blindly.
 
-### FASE 3: Implementasi Task
-1. Baca detail task (judul, deskripsi, sumber `← FR-XX`, dependensi, file yang diubah).
-2. **Cek kesesuaian scope:** sebelum menulis kode, cocokkan deskripsi task dengan FR aslinya (jika ada) — pastikan implementasi tidak "berkembang" jadi lebih luas dari yang tertulis di task (misal task-nya "tampilkan daftar", jangan diam-diam tambah fitur edit/hapus tanpa task terpisah).
-3. Cek dependensi: task sebelumnya sudah selesai? Jika belum, beri peringatan dan tawarkan kerjakan dependensinya dulu.
-4. Baca file yang akan diubah (jika sudah ada).
-5. Tulis kode implementasi — sesuaikan stack dan konteks project. Jika di tengah implementasi AI menyadari perlu menambah sesuatu di luar scope task (misal helper function tambahan, validasi ekstra) yang cukup signifikan → **jangan langsung tulis diam-diam**; sebutkan ke user dulu sebagai catatan kecil, sisanya tetap boleh jalan untuk hal-hal remeh teknis (bukan keputusan produk).
-6. Update status task menjadi "Done".
+If a check fails, diagnose and rerun after a justified fix.
+If a required check cannot run, use `NEEDS_VERIFICATION`, not `DONE`.
 
-### FASE 4: Finalisasi & Next Step
-1. Beri tahu file apa saja yang berubah.
-2. Sebutkan singkat apakah implementasi 100% sesuai scope task, atau ada penyesuaian kecil yang dilakukan (dan kenapa).
-3. Tanyakan: "Lanjut ke task berikutnya? (y/n)"
-
-**Contoh respons:**
-```
-✅ Task T-03: Create User Model selesai! (← FR-01)
-
-File yang diubah:
-- [path sesuai stack]
-
-Catatan: sesuai scope task, tidak ada penambahan di luar deskripsi.
-
-Lanjut ke task berikutnya? (y/n)
-```
-
-## 📝 Format Output Implementasi
-Setiap task selesai, AI HARUS menampilkan:
-1. ✅ **Konfirmasi selesai** — Task T-XX: [Nama Task] ✅ *(dengan sumber `← FR-XX` jika ada)*
-2. **File yang diubah**
-3. **Catatan kesesuaian scope** — sesuai / ada penyesuaian kecil (jelaskan)
-4. **Testing** — cara menguji hasil implementasi
-5. **Ajakan lanjut**
-
-Kode ditulis langsung ke file — tidak perlu ditampilkan penuh di respons.
+## Final report
+- Task ID/source
+- Files changed
+- Acceptance criteria + evidence
+- Commands run + results
+- Scope deviations
+- Remaining risks
+- Status

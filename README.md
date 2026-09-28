@@ -1,56 +1,31 @@
-# 🚀 OpenCode Dev — My OpenCode Skills v2
+# OpenCode Dev Skills v3
 
-Kumpulan **skill** untuk **OpenCode** dan **Claude Code** yang mengikuti alur kerja engineering lengkap: dari ide mentah → PRD → Tech Spec → task → implementasi → verifikasi.
+Engineering workflow focused on preventing AI coding agents from guessing, scope-creeping, and falsely claiming completion.
 
-## 🧩 Daftar Skill
+## Pipeline
 
-| Skill | Fungsi | Langkah |
-|-------|--------|---------|
-| `idea-intake` | Tangkap ide mentah → brief tervalidasi (Anti-Halu Gate) | 0️⃣ |
-| `mini-prd` | Bikin PRD ringkas dari brief | 1️⃣ |
-| `write-tech-spec` | Bikin Tech Spec teknis (arsitektur, API, struktur) | 2️⃣ |
-| `create-issues` | Pecah jadi task list (TASKS.md) | 3️⃣ |
-| `implement-task` | Implementasi task satu-satu | 4️⃣ |
-| `verify` | Verifikasi hasil (import/compile/smoke test) | 5️⃣ |
-| `learnit` | Belajar pola & struktur dari repo lain | bonus |
-| `legacy-decoder` | Baca & dokumentasikan kode legacy | bonus |
+`idea-intake → mini-prd → write-tech-spec → create-issues → implement-task → verify`
 
-## 🔄 Alur Kerja (Pipeline)
+Supporting skills:
+- `legacy-decoder` — evidence-based reverse engineering
+- `learnit` — project-based learning with verification
+- `00-engineering-guardrails` — mandatory cross-skill safety/quality contract
 
-```
-idea-intake → mini-prd → write-tech-spec → create-issues → implement-task → verify
-```
+## Core improvements over v2
 
-## 📦 Install
+1. **Evidence hierarchy**: user request, project decisions, code, docs, inference are explicitly separated.
+2. **No-guess rule**: architecture/data/API/security ambiguity can block implementation.
+3. **Testable requirements**: requirements require observable acceptance criteria.
+4. **No arbitrary feature counts**: no invented FR/US just to fill a template.
+5. **Decision log**: major technical decisions record evidence, alternatives, risk, and status.
+6. **Repository reconnaissance**: existing code is inspected before architecture is proposed.
+7. **Change budget**: every implementation has an explicit scope boundary.
+8. **Verification evidence**: `Done` requires actual checks; otherwise use `NEEDS_VERIFICATION`.
+9. **Failure protocol**: failed checks cannot be hidden or bypassed.
+10. **Diff-aware verification**: actual changes are compared against user requirements and tasks.
+11. **Inference containment**: inferred legacy behavior cannot silently become refactor requirements.
+12. **Acceptance traceability**: `USER → BRIEF → PRD → FR → SPEC → TASK → CODE → TEST`.
 
-### OpenCode
-```bash
-# Salin skill ke folder config OpenCode
-cp -r skills/* ~/.config/opencode/skills/
-```
+## Recommended installation
 
-### Claude Code
-```bash
-# Salin skill ke folder Claude Code
-cp -r skills/* ~/.claude/skills/
-```
-
-## 📁 Struktur
-
-Setiap skill berformat **Agent Skills** (frontmatter `name` + `description`), jadi kompatibel dengan OpenCode & Claude Code.
-
-```
-opencode-dev/
-├── idea-intake/         # SKILL.md + template
-├── mini-prd/
-├── write-tech-spec/
-├── create-issues/
-├── implement-task/
-├── verify/
-├── learnit/
-├── legacy-decoder/
-└── README.md
-```
-
----
-© upptime993
+Copy the skill directories into the appropriate agent skill directory. Keep `00-engineering-guardrails` available to every project skill.
